@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 
 export const sendTextMessage = async (phone: string, message: string) => {
   const url = `https://graph.facebook.com/v18.0/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`;
@@ -17,11 +17,15 @@ export const sendTextMessage = async (phone: string, message: string) => {
           Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     console.log(`Text sent to ${phone}: ${message}`);
   } catch (error: any) {
-    console.error("Error sending text:", error.response?.data || error.message);
-    throw error;
+    if (error instanceof AxiosError) {
+      console.error("📍Error sending text👉 :", error.response?.data);
+    } else {
+      console.error("Error sending text:", error.message);
+      throw error;
+    }
   }
 };
