@@ -1,0 +1,154 @@
+{
+    "nodes": [
+        {
+            "id": "start-1",
+            "type": "start",
+            "position": {
+                "x": 250,
+                "y": 50
+            },
+            "data": {}
+        },
+        {
+            "id": "plain-1",
+            "type": "plainMessage",
+            "position": {
+                "x": 250,
+                "y": 150
+            },
+            "data": {
+                "message": "Welcome to our WhatsApp bot! 👋"
+            }
+        },
+        {
+            "id": "plain-2",
+            "type": "plainMessage",
+            "position": {
+                "x": 250,
+                "y": 250
+            },
+            "data": {
+                "message": "We're here to help you with your needs."
+            }
+        },
+        {
+            "id": "button-1",
+            "type": "buttonMessage",
+            "position": {
+                "x": 250,
+                "y": 350
+            },
+            "data": {
+                "message": "What would you like to do today?",
+                "buttons": [
+                    {
+                        "id": "buy_btn",
+                        "title": "Buy Product"
+                    },
+                    {
+                        "id": "support_btn",
+                        "title": "Get Support"
+                    },
+                    {
+                        "id": "info_btn",
+                        "title": "More Info"
+                    }
+                ]
+            }
+        },
+        {
+            "id": "plain-buy",
+            "type": "plainMessage",
+            "position": {
+                "x": 50,
+                "y": 500
+            },
+            "data": {
+                "message": "Great! Let me show you our products. Visit: https://example.com/shop"
+            }
+        },
+        {
+            "id": "plain-support",
+            "type": "plainMessage",
+            "position": {
+                "x": 250,
+                "y": 500
+            },
+            "data": {
+                "message": "Our support team is ready to help! Please describe your issue."
+            }
+        },
+        {
+            "id": "plain-info",
+            "type": "plainMessage",
+            "position": {
+                "x": 450,
+                "y": 500
+            },
+            "data": {
+                "message": "We offer premium products with 24/7 support. Learn more at: https://example.com/about"
+            }
+        },
+        {
+            "id": "plain-end",
+            "type": "plainMessage",
+            "position": {
+                "x": 250,
+                "y": 600
+            },
+            "data": {
+                "message": "Thank you for contacting us! Send 'hi' anytime to restart. 😊"
+            }
+        }
+    ],
+    "edges": [
+        {
+            "id": "e-start-plain1",
+            "source": "start-1",
+            "target": "plain-1"
+        },
+        {
+            "id": "e-plain1-plain2",
+            "source": "plain-1",
+            "target": "plain-2"
+        },
+        {
+            "id": "e-plain2-button1",
+            "source": "plain-2",
+            "target": "button-1"
+        },
+        {
+            "id": "e-button1-buy",
+            "source": "button-1",
+            "sourceHandle": "buy_btn",
+            "target": "plain-buy"
+        },
+        {
+            "id": "e-button1-support",
+            "source": "button-1",
+            "sourceHandle": "support_btn",
+            "target": "plain-support"
+        },
+        {
+            "id": "e-button1-info",
+            "source": "button-1",
+            "sourceHandle": "info_btn",
+            "target": "plain-info"
+        },
+        {
+            "id": "e-buy-end",
+            "source": "plain-buy",
+            "target": "plain-end"
+        },
+        {
+            "id": "e-support-end",
+            "source": "plain-support",
+            "target": "plain-end"
+        },
+        {
+            "id": "e-info-end",
+            "source": "plain-info",
+            "target": "plain-end"
+        }
+    ]
+}

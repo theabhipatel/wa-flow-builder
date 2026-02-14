@@ -1,0 +1,132 @@
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║   ██╗    ██╗██╗  ██╗ █████╗ ████████╗███████╗ █████╗ ██████╗ ██████╗       ║
+║   ██║    ██║██║  ██║██╔══██╗╚══██╔══╝██╔════╝██╔══██╗██╔══██╗██╔══██╗      ║
+║   ██║ █╗ ██║███████║███████║   ██║   ███████╗███████║██████╔╝██████╔╝      ║
+║   ██║███╗██║██╔══██║██╔══██║   ██║   ╚════██║██╔══██║██╔═══╝ ██╔═══╝       ║
+║   ╚███╔███╔╝██║  ██║██║  ██║   ██║   ███████║██║  ██║██║     ██║           ║
+║    ╚══╝╚══╝ ╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝           ║
+║                                                                              ║
+║              ███████╗██╗      ██████╗ ██╗    ██╗                            ║
+║              ██╔════╝██║     ██╔═══██╗██║    ██║                            ║
+║              █████╗  ██║     ██║   ██║██║ █╗ ██║                            ║
+║              ██╔══╝  ██║     ██║   ██║██║███╗██║                            ║
+║              ██║     ███████╗╚██████╔╝╚███╔███╔╝                            ║
+║              ╚═╝     ╚══════╝ ╚═════╝  ╚══╝╚══╝                             ║
+║                                                                              ║
+║          ██████╗ ██╗   ██╗██╗██╗     ██████╗ ███████╗██████╗                ║
+║          ██╔══██╗██║   ██║██║██║     ██╔══██╗██╔════╝██╔══██╗               ║
+║          ██████╔╝██║   ██║██║██║     ██║  ██║█████╗  ██████╔╝               ║
+║          ██╔══██╗██║   ██║██║██║     ██║  ██║██╔══╝  ██╔══██╗               ║
+║          ██████╔╝╚██████╔╝██║███████╗██████╔╝███████╗██║  ██║               ║
+║          ╚═════╝  ╚═════╝ ╚═╝╚══════╝╚═════╝ ╚══════╝╚═╝  ╚═╝               ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+                    Visual Flow Builder for WhatsApp Bots
+                    
+                    ✨ Drag & Drop Interface
+                    🤖 Real WhatsApp Integration  
+                    💾 MongoDB Persistence
+                    🔀 Branching Logic
+                    📱 Multi-User Support
+                    
+                    Version 1.0.0 | MIT License
+                    
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                           QUICK START                                        ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+  1. Install Backend:  cd backend && npm install
+  2. Install Frontend: cd frontend && npm install
+  3. Configure:        cd backend && cp .env.example .env
+  4. Run Backend:      cd backend && npm run dev
+  5. Run Frontend:     cd frontend && npm run dev
+  6. Open:             http://localhost:3000
+  
+  📚 Documentation: See GETTING-STARTED.md for detailed guide
+  
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                           FEATURES                                           ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+  ┌────────────────────────────────────────────────────────────────────────┐
+  │  VISUAL BUILDER                                                        │
+  │  • Drag & drop nodes                                                   │
+  │  • Connect with edges                                                  │
+  │  • Real-time editing                                                   │
+  │  • Export/Import JSON                                                  │
+  └────────────────────────────────────────────────────────────────────────┘
+  
+  ┌────────────────────────────────────────────────────────────────────────┐
+  │  NODE TYPES                                                            │
+  │  • Start Node - Entry point                                            │
+  │  • Plain Message - Auto-continue text                                  │
+  │  • Button Message - Interactive choices                                │
+  └────────────────────────────────────────────────────────────────────────┘
+  
+  ┌────────────────────────────────────────────────────────────────────────┐
+  │  WHATSAPP INTEGRATION                                                  │
+  │  • Real message sending                                                │
+  │  • Interactive buttons                                                 │
+  │  • Webhook support                                                     │
+  │  • Multi-user sessions                                                 │
+  └────────────────────────────────────────────────────────────────────────┘
+  
+  ┌────────────────────────────────────────────────────────────────────────┐
+  │  EXECUTION ENGINE                                                      │
+  │  • Sequential execution                                                │
+  │  • Pause/Resume logic                                                  │
+  │  • Branch navigation                                                   │
+  │  • Session management                                                  │
+  └────────────────────────────────────────────────────────────────────────┘
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                           TECH STACK                                         ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+  Frontend:  React 18 + TypeScript + React Flow + Tailwind CSS
+  Backend:   Node.js + Express + TypeScript
+  Database:  MongoDB + Mongoose
+  API:       WhatsApp Cloud API (Meta)
+  
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                           DOCUMENTATION                                      ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+  📖 README.md                - Project overview
+  🚀 GETTING-STARTED.md       - 5 minute quick start
+  🔧 SETUP.md                 - Detailed setup guide
+  🏗️  ARCHITECTURE.md          - Technical architecture
+  🔍 TROUBLESHOOTING.md       - Common issues & fixes
+  📝 QUICK-REFERENCE.md       - Command cheat sheet
+  📁 PROJECT-STRUCTURE.md     - Code organization
+  📊 FLOW-DIAGRAM.md          - Visual diagrams
+  📚 DOCUMENTATION-INDEX.md   - Complete guide index
+  📋 PROJECT-SUMMARY.md       - Project summary
+  
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                           SUPPORT                                            ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+  🐛 Issues?        Check TROUBLESHOOTING.md
+  ❓ Questions?     Read DOCUMENTATION-INDEX.md
+  🚀 Getting Started? See GETTING-STARTED.md
+  📖 Learn More?    Review ARCHITECTURE.md
+  
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                           EXAMPLE FLOW                                       ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+  Start → Plain: "Welcome!" → Button: "Choose option"
+           ├─ Buy → Plain: "Visit shop..."
+           ├─ Support → Plain: "Contact us..."
+           └─ Info → Plain: "Learn more..."
+           
+  Import example-flow.json to see a complete working example!
+  
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                           HAPPY BUILDING! 🚀                                 ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
