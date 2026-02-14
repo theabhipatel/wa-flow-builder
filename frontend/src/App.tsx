@@ -16,6 +16,7 @@ import axios from "axios";
 import Topbar from "./components/Topbar";
 import Sidebar from "./components/Sidebar";
 import NodeEditorPanel from "./components/NodeEditorPanel";
+import CustomEdge from "./components/CustomEdge";
 import StartNode from "./nodes/StartNode";
 import PlainMessageNode from "./nodes/PlainMessageNode";
 import ButtonMessageNode from "./nodes/ButtonMessageNode";
@@ -25,6 +26,10 @@ const nodeTypes = {
   start: StartNode,
   plainMessage: PlainMessageNode,
   buttonMessage: ButtonMessageNode,
+};
+
+const edgeTypes = {
+  custom: CustomEdge,
 };
 
 const API_URL = "http://localhost:5000";
@@ -64,9 +69,27 @@ function FlowBuilder() {
   }, []); // Empty dependency array means this runs once on mount
 
   const onConnect = useCallback(
-    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
+    (params: Connection) =>
+      setEdges((eds) => addEdge({ ...params, type: "custom" }, eds)),
     [setEdges],
   );
+
+  const handleDeleteEdge = useCallback(
+    (edgeId: string) => {
+      setEdges((eds) => eds.filter((e) => e.id !== edgeId));
+    },
+    [setEdges],
+  );
+
+  // Update edges with delete handler
+  const edgesWithActions = edges.map((edge) => ({
+    ...edge,
+    type: edge.type || "custom",
+    data: {
+      ...edge.data,
+      onDelete: handleDeleteEdge,
+    },
+  }));
 
   const onDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
@@ -104,6 +127,55 @@ function FlowBuilder() {
     },
     [reactFlowInstance, setNodes],
   );
+
+  const handleDuplicateNode = useCallback(
+    (nodeId: string) => {
+      setNodes((nds) => {
+        const nodeToDuplicate = nds.find((n) => n.id === nodeId);
+        if (!nodeToDuplicate) return nds;
+
+        const newNode: Node = {
+          ...nodeToDuplicate,
+          id: `${nodeToDuplicate.type}-${Date.now()}`,
+          position: {
+            x: nodeToDuplicate.position.x + 50,
+            y: nodeToDuplicate.position.y + 50,
+          },
+          data: { ...nodeToDuplicate.data },
+        };
+
+        return [...nds, newNode];
+      });
+    },
+    [setNodes],
+  );
+
+  const handleDeleteNode = useCallback(
+    (nodeId: string) => {
+      const node = nodes.find((n) => n.id === nodeId);
+      if (!node) return;
+
+      const nodeType = node.type === "start" ? "START node" : "this node";
+      if (window.confirm(`Are you sure you want to delete ${nodeType}?`)) {
+        setNodes((nds) => nds.filter((n) => n.id !== nodeId));
+        setEdges((eds) =>
+          eds.filter((e) => e.source !== nodeId && e.target !== nodeId),
+        );
+        setSelectedNode(null);
+      }
+    },
+    [nodes, setNodes, setEdges],
+  );
+
+  // Update nodes with action handlers
+  const nodesWithActions = nodes.map((node) => ({
+    ...node,
+    data: {
+      ...node.data,
+      onDuplicate: () => handleDuplicateNode(node.id),
+      onDelete: () => handleDeleteNode(node.id),
+    },
+  }));
 
   const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
     setSelectedNode(node);
@@ -254,8 +326,8 @@ function FlowBuilder() {
         <Sidebar />
         <div ref={reactFlowWrapper} className="flex-1">
           <ReactFlow
-            nodes={nodes}
-            edges={edges}
+            nodes={nodesWithActions}
+            edges={edgesWithActions}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
@@ -265,10 +337,11 @@ function FlowBuilder() {
             onNodeClick={onNodeClick}
             onPaneClick={onPaneClick}
             nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
             fitView
             connectionLineStyle={{ stroke: "#9333ea", strokeWidth: 2 }}
             defaultEdgeOptions={{
-              type: "smoothstep",
+              type: "custom",
               animated: true,
               style: { stroke: "#9333ea", strokeWidth: 2 },
             }}
