@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import ReactFlow, {
   ReactFlowProvider,
   addEdge,
@@ -44,6 +44,24 @@ function FlowBuilder() {
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
+
+  // Auto-load flow from database on component mount
+  useEffect(() => {
+    const loadFlowFromDB = async () => {
+      try {
+        const response = await axios.get(`${API_URL}/api/flow`);
+        if (response.data.nodes && response.data.nodes.length > 0) {
+          setNodes(response.data.nodes);
+          setEdges(response.data.edges || []);
+          console.log("Flow loaded from database");
+        }
+      } catch (error) {
+        console.error("Error auto-loading flow:", error);
+      }
+    };
+
+    loadFlowFromDB();
+  }, []); // Empty dependency array means this runs once on mount
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
@@ -118,9 +136,13 @@ function FlowBuilder() {
   const handleLoad = async () => {
     try {
       const response = await axios.get(`${API_URL}/api/flow`);
-      setNodes(response.data.nodes || initialNodes);
-      setEdges(response.data.edges || []);
-      alert("Flow loaded successfully!");
+      if (response.data.nodes && response.data.nodes.length > 0) {
+        setNodes(response.data.nodes);
+        setEdges(response.data.edges || []);
+        alert("Flow loaded successfully!");
+      } else {
+        alert("No saved flow found in database");
+      }
     } catch (error) {
       alert("Error loading flow");
       console.error(error);
