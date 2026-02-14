@@ -175,6 +175,71 @@ function FlowBuilder() {
     }
   };
 
+  const handleAutoLayout = useCallback(() => {
+    const layoutedNodes: Node[] = [];
+    const nodeMap = new Map<string, Node>();
+    const visited = new Set<string>();
+
+    // Build node map
+    nodes.forEach((node) => nodeMap.set(node.id, node));
+
+    // Find start node
+    const startNode = nodes.find((n) => n.type === "start");
+    if (!startNode) return;
+
+    const HORIZONTAL_SPACING = 300;
+    const VERTICAL_SPACING = 100;
+    const START_X = 50;
+    const START_Y = 250;
+
+    // BFS to layout nodes
+    const queue: Array<{ nodeId: string; x: number; y: number }> = [
+      { nodeId: startNode.id, x: START_X, y: START_Y },
+    ];
+
+    while (queue.length > 0) {
+      const { nodeId, x, y } = queue.shift()!;
+
+      if (visited.has(nodeId)) continue;
+      visited.add(nodeId);
+
+      const node = nodeMap.get(nodeId);
+      if (!node) continue;
+
+      layoutedNodes.push({
+        ...node,
+        position: { x, y },
+      });
+
+      // Find connected nodes
+      const outgoingEdges = edges.filter((e) => e.source === nodeId);
+      const childCount = outgoingEdges.length;
+
+      outgoingEdges.forEach((edge, idx) => {
+        if (!visited.has(edge.target)) {
+          const offsetY =
+            childCount > 1
+              ? (idx - (childCount - 1) / 2) * VERTICAL_SPACING
+              : 0;
+          queue.push({
+            nodeId: edge.target,
+            x: x + HORIZONTAL_SPACING,
+            y: y + offsetY,
+          });
+        }
+      });
+    }
+
+    // Add any unconnected nodes
+    nodes.forEach((node) => {
+      if (!visited.has(node.id)) {
+        layoutedNodes.push(node);
+      }
+    });
+
+    setNodes(layoutedNodes);
+  }, [nodes, edges, setNodes]);
+
   return (
     <div className="h-screen flex flex-col">
       <Topbar
@@ -183,6 +248,7 @@ function FlowBuilder() {
         onExport={handleExport}
         onImport={handleImport}
         onTest={handleTest}
+        onAutoLayout={handleAutoLayout}
       />
       <div className="flex-1 flex">
         <Sidebar />
