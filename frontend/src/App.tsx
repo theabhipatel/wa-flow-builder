@@ -33,7 +33,7 @@ const initialNodes: Node[] = [
   {
     id: "start-1",
     type: "start",
-    position: { x: 250, y: 50 },
+    position: { x: 50, y: 250 },
     data: {},
   },
 ];
@@ -65,7 +65,7 @@ function FlowBuilder() {
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
-    [setEdges]
+    [setEdges],
   );
 
   const onDragOver = useCallback((event: React.DragEvent) => {
@@ -102,7 +102,7 @@ function FlowBuilder() {
 
       setNodes((nds) => nds.concat(newNode));
     },
-    [reactFlowInstance, setNodes]
+    [reactFlowInstance, setNodes],
   );
 
   const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
@@ -116,11 +116,11 @@ function FlowBuilder() {
   const handleUpdateNode = useCallback(
     (nodeId: string, data: any) => {
       setNodes((nds) =>
-        nds.map((node) => (node.id === nodeId ? { ...node, data } : node))
+        nds.map((node) => (node.id === nodeId ? { ...node, data } : node)),
       );
       setSelectedNode(null);
     },
-    [setNodes]
+    [setNodes],
   );
 
   const handleSave = async () => {
@@ -162,7 +162,7 @@ function FlowBuilder() {
 
   const handleTest = async () => {
     const phone = prompt(
-      "Enter phone number (with country code, e.g., 919999999999):"
+      "Enter phone number (with country code, e.g., 919999999999):",
     );
     if (!phone) return;
 
@@ -200,6 +200,12 @@ function FlowBuilder() {
             onPaneClick={onPaneClick}
             nodeTypes={nodeTypes}
             fitView
+            connectionLineStyle={{ stroke: "#9333ea", strokeWidth: 2 }}
+            defaultEdgeOptions={{
+              type: "smoothstep",
+              animated: true,
+              style: { stroke: "#9333ea", strokeWidth: 2 },
+            }}
           >
             <Controls />
             <Background />
