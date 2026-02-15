@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Plus, Edit, Copy, Trash2, Workflow } from "lucide-react";
-
-const API_URL = "http://localhost:5000";
+import { API_URL } from "../config/api";
 
 interface Flow {
   _id: string;

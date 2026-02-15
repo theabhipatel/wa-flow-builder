@@ -23,6 +23,7 @@ import ButtonMessageNode from "../nodes/ButtonMessageNode";
 import ListMessageNode from "../nodes/ListMessageNode";
 import GotoSubflowNode from "../nodes/GotoSubflowNode";
 import { exportFlow, importFlow } from "../utils/flowExportImport";
+import { API_URL } from "../config/api";
 
 const nodeTypes = {
   start: StartNode,
@@ -36,8 +37,6 @@ const nodeTypes = {
 const edgeTypes = {
   custom: CustomEdge,
 };
-
-const API_URL = "http://localhost:5000";
 
 export default function EditorPage() {
   const { botId, flowId } = useParams<{ botId: string; flowId: string }>();

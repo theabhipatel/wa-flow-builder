@@ -10,8 +10,7 @@ import {
   DialogFooter,
 } from "../components/ui/dialog";
 import { Label } from "../components/ui/label";
-
-const API_URL = "http://localhost:5000";
+import { API_URL } from "../config/api";
 
 interface BotType {
   _id: string;
