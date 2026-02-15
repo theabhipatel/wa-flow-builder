@@ -15,8 +15,17 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Connect to MongoDB
-connectDB();
+// Middleware to ensure MongoDB connection before handling requests
+// This is crucial for serverless environments where connections are not persistent
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    console.error("Database connection failed:", error);
+    res.status(500).json({ error: "Database connection failed" });
+  }
+});
 
 // Routes
 app.use("/api/bot", botRoutes);
