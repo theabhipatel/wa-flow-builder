@@ -4,6 +4,7 @@ export interface IFlow extends Document {
   name: string;
   flowId: string;
   type: "main" | "subflow";
+  botId: string;
   nodes: any[];
   edges: any[];
   createdAt: Date;
@@ -14,6 +15,7 @@ const FlowSchema = new Schema({
   name: { type: String, required: true },
   flowId: { type: String, required: true, unique: true },
   type: { type: String, enum: ["main", "subflow"], required: true },
+  botId: { type: String, required: true },
   nodes: { type: Array, required: true },
   edges: { type: Array, required: true },
   createdAt: { type: Date, default: Date.now },

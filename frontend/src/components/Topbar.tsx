@@ -2,6 +2,7 @@ import { Save, Download, Upload, Play, Network, ArrowLeft } from "lucide-react";
 
 interface TopbarProps {
   flowName?: string;
+  botName?: string;
   onBack?: () => void;
   onSave: () => void;
   onExport: () => void;
@@ -12,6 +13,7 @@ interface TopbarProps {
 
 export default function Topbar({
   flowName,
+  botName,
   onBack,
   onSave,
   onExport,
@@ -26,14 +28,17 @@ export default function Topbar({
           <button
             onClick={onBack}
             className="p-2 hover:bg-gray-100 rounded-lg transition"
-            title="Back to Home"
+            title="Back to Flows"
           >
             <ArrowLeft size={20} />
           </button>
         )}
-        <h1 className="text-xl font-bold text-gray-800">
-          {flowName || "WhatsApp Flow Builder"}
-        </h1>
+        <div>
+          <h1 className="text-xl font-bold text-gray-800">
+            {flowName || "WhatsApp Flow Builder"}
+          </h1>
+          {botName && <p className="text-xs text-gray-500">Bot: {botName}</p>}
+        </div>
       </div>
       <div className="flex gap-2">
         <button

@@ -1,7 +1,12 @@
 import axios, { AxiosError } from "axios";
 
-export const sendTextMessage = async (phone: string, message: string) => {
-  const url = `https://graph.facebook.com/v18.0/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`;
+export const sendTextMessage = async (
+  phone: string,
+  message: string,
+  token: string,
+  phoneNumberId: string,
+) => {
+  const url = `https://graph.facebook.com/v18.0/${phoneNumberId}/messages`;
 
   try {
     await axios.post(
@@ -14,7 +19,7 @@ export const sendTextMessage = async (phone: string, message: string) => {
       },
       {
         headers: {
-          Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       },

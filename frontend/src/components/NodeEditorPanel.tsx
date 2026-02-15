@@ -8,12 +8,14 @@ interface NodeEditorPanelProps {
   selectedNode: any;
   onClose: () => void;
   onUpdate: (nodeId: string, data: any) => void;
+  botId?: string;
 }
 
 export default function NodeEditorPanel({
   selectedNode,
   onClose,
   onUpdate,
+  botId,
 }: NodeEditorPanelProps) {
   const [message, setMessage] = useState("");
   const [buttons, setButtons] = useState<{ id: string; title: string }[]>([]);
@@ -40,7 +42,11 @@ export default function NodeEditorPanel({
 
   const loadAvailableFlows = async () => {
     try {
-      const response = await axios.get(`${API_URL}/api/flow/all`);
+      if (!botId) {
+        console.error("No botId provided");
+        return;
+      }
+      const response = await axios.get(`${API_URL}/api/flow/all/${botId}`);
       const subflows = response.data.filter((f: any) => f.type === "subflow");
       setAvailableFlows(subflows);
     } catch (error) {

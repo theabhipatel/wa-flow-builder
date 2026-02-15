@@ -5,6 +5,7 @@ import { connectDB } from "./config/db";
 import flowRoutes from "./routes/flowRoutes";
 import webhookRoutes from "./routes/webhookRoutes";
 import testRoutes from "./routes/testRoutes";
+import botRoutes from "./routes/botRoutes";
 
 dotenv.config();
 
@@ -19,6 +20,7 @@ app.use(express.json());
 connectDB();
 
 // Routes
+app.use("/api/bot", botRoutes);
 app.use("/api/flow", flowRoutes);
 app.use("/webhook", webhookRoutes);
 app.use("/api/test-run", testRoutes);

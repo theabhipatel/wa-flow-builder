@@ -40,21 +40,32 @@ const edgeTypes = {
 const API_URL = "http://localhost:5000";
 
 export default function EditorPage() {
-  const { flowId } = useParams<{ flowId: string }>();
+  const { botId, flowId } = useParams<{ botId: string; flowId: string }>();
   const navigate = useNavigate();
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [flowName, setFlowName] = useState("");
   const [flowType, setFlowType] = useState<"main" | "subflow">("main");
+  const [botName, setBotName] = useState("");
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
 
   useEffect(() => {
-    if (flowId) {
+    if (flowId && botId) {
       loadFlow(flowId);
+      loadBot();
     }
-  }, [flowId]);
+  }, [flowId, botId]);
+
+  const loadBot = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/bot/${botId}`);
+      setBotName(response.data.name);
+    } catch (error) {
+      console.error("Error loading bot:", error);
+    }
+  };
 
   const loadFlow = async (id: string) => {
     try {
@@ -213,6 +224,7 @@ export default function EditorPage() {
         flowId,
         name: flowName,
         type: flowType,
+        botId,
         nodes,
         edges,
       });
@@ -241,7 +253,7 @@ export default function EditorPage() {
     if (!phone) return;
 
     try {
-      await axios.post(`${API_URL}/api/test-run`, { phone });
+      await axios.post(`${API_URL}/api/test-run`, { phone, botId });
       alert("Test flow started! Check your WhatsApp.");
     } catch (error) {
       alert("Error running test");
@@ -312,13 +324,14 @@ export default function EditorPage() {
   }, [nodes, edges, setNodes]);
 
   const handleBack = () => {
-    navigate("/");
+    navigate(`/bot/${botId}/flows`);
   };
 
   return (
     <div className="h-screen flex flex-col">
       <Topbar
         flowName={flowName}
+        botName={botName}
         onBack={handleBack}
         onSave={handleSave}
         onExport={handleExport}
@@ -359,6 +372,7 @@ export default function EditorPage() {
             selectedNode={selectedNode}
             onClose={() => setSelectedNode(null)}
             onUpdate={handleUpdateNode}
+            botId={botId}
           />
         )}
       </div>

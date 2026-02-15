@@ -2,6 +2,7 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export interface ISession extends Document {
   phone: string;
+  botId: string;
   currentFlowId: string;
   currentNodeId: string | null;
   waitingForButton: boolean;
@@ -12,7 +13,8 @@ export interface ISession extends Document {
 }
 
 const SessionSchema = new Schema({
-  phone: { type: String, required: true, unique: true },
+  phone: { type: String, required: true },
+  botId: { type: String, required: true },
   currentFlowId: { type: String, default: "main" },
   currentNodeId: { type: String, default: null },
   waitingForButton: { type: Boolean, default: false },
@@ -21,5 +23,7 @@ const SessionSchema = new Schema({
   variables: { type: Object, default: {} },
   updatedAt: { type: Date, default: Date.now },
 });
+
+SessionSchema.index({ phone: 1, botId: 1 }, { unique: true });
 
 export default mongoose.model<ISession>("Session", SessionSchema);

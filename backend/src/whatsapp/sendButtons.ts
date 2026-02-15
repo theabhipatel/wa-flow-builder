@@ -3,9 +3,11 @@ import axios from "axios";
 export const sendButtonMessage = async (
   phone: string,
   message: string,
-  buttons: { id: string; title: string }[]
+  buttons: { id: string; title: string }[],
+  token: string,
+  phoneNumberId: string,
 ) => {
-  const url = `https://graph.facebook.com/v18.0/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`;
+  const url = `https://graph.facebook.com/v18.0/${phoneNumberId}/messages`;
 
   const buttonPayload = buttons.slice(0, 3).map((btn) => ({
     type: "reply",
@@ -30,16 +32,16 @@ export const sendButtonMessage = async (
       },
       {
         headers: {
-          Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-      }
+      },
     );
     console.log(`Buttons sent to ${phone}`);
   } catch (error: any) {
     console.error(
       "Error sending buttons:",
-      error.response?.data || error.message
+      error.response?.data || error.message,
     );
     throw error;
   }

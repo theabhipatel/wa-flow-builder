@@ -11,8 +11,10 @@ export const sendListMessage = async (
   message: string,
   buttonText: string,
   listItems: ListItem[],
+  token: string,
+  phoneNumberId: string,
 ) => {
-  const url = `https://graph.facebook.com/v18.0/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`;
+  const url = `https://graph.facebook.com/v18.0/${phoneNumberId}/messages`;
 
   // WhatsApp API supports up to 10 items in a single section
   const rows = listItems.slice(0, 10).map((item) => ({
@@ -44,7 +46,7 @@ export const sendListMessage = async (
       },
       {
         headers: {
-          Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       },
