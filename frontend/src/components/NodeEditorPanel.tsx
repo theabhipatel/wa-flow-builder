@@ -14,11 +14,17 @@ export default function NodeEditorPanel({
 }: NodeEditorPanelProps) {
   const [message, setMessage] = useState("");
   const [buttons, setButtons] = useState<{ id: string; title: string }[]>([]);
+  const [buttonText, setButtonText] = useState("");
+  const [listItems, setListItems] = useState<
+    { id: string; title: string; description?: string }[]
+  >([]);
 
   useEffect(() => {
     if (selectedNode) {
       setMessage(selectedNode.data.message || "");
       setButtons(selectedNode.data.buttons || []);
+      setButtonText(selectedNode.data.buttonText || "");
+      setListItems(selectedNode.data.listItems || []);
     }
   }, [selectedNode]);
 
@@ -29,6 +35,7 @@ export default function NodeEditorPanel({
       ...selectedNode.data,
       message,
       ...(selectedNode.type === "buttonMessage" && { buttons }),
+      ...(selectedNode.type === "listMessage" && { buttonText, listItems }),
     };
     onUpdate(selectedNode.id, updatedData);
   };
@@ -48,6 +55,26 @@ export default function NodeEditorPanel({
 
   const removeButton = (index: number) => {
     setButtons(buttons.filter((_, i) => i !== index));
+  };
+
+  const addListItem = () => {
+    if (listItems.length < 10) {
+      const newId = `list_${Date.now()}`;
+      setListItems([
+        ...listItems,
+        { id: newId, title: "New Option", description: "" },
+      ]);
+    }
+  };
+
+  const updateListItem = (index: number, field: string, value: string) => {
+    const updated = [...listItems];
+    updated[index] = { ...updated[index], [field]: value };
+    setListItems(updated);
+  };
+
+  const removeListItem = (index: number) => {
+    setListItems(listItems.filter((_, i) => i !== index));
   };
 
   return (
@@ -109,6 +136,77 @@ export default function NodeEditorPanel({
               ))}
             </div>
           </div>
+        )}
+
+        {selectedNode.type === "listMessage" && (
+          <>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Button Text
+              </label>
+              <input
+                type="text"
+                value={buttonText}
+                onChange={(e) => setButtonText(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                placeholder="View Options"
+                maxLength={20}
+              />
+            </div>
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  List Items (max 10)
+                </label>
+                {listItems.length < 10 && (
+                  <button
+                    onClick={addListItem}
+                    className="text-green-600 hover:text-green-700 flex items-center gap-1 text-sm"
+                  >
+                    <Plus size={16} />
+                    Add
+                  </button>
+                )}
+              </div>
+              <div className="space-y-3">
+                {listItems.map((item, idx) => (
+                  <div
+                    key={item.id}
+                    className="border border-gray-200 rounded-lg p-2"
+                  >
+                    <div className="flex gap-2 mb-2">
+                      <input
+                        type="text"
+                        value={item.title}
+                        onChange={(e) =>
+                          updateListItem(idx, "title", e.target.value)
+                        }
+                        className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+                        placeholder="Title (max 24 chars)"
+                        maxLength={24}
+                      />
+                      <button
+                        onClick={() => removeListItem(idx)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                    <input
+                      type="text"
+                      value={item.description || ""}
+                      onChange={(e) =>
+                        updateListItem(idx, "description", e.target.value)
+                      }
+                      className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+                      placeholder="Description (optional, max 72 chars)"
+                      maxLength={72}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
         )}
 
         <button

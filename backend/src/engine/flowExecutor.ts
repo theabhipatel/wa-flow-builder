@@ -2,6 +2,7 @@ import Flow from "../models/Flow";
 import Session from "../models/Session";
 import { sendTextMessage } from "../whatsapp/sendText";
 import { sendButtonMessage } from "../whatsapp/sendButtons";
+import { sendListMessage } from "../whatsapp/sendList";
 
 export const startFlow = async (phone: string) => {
   const flow = await Flow.findOne({ name: "default" });
@@ -20,7 +21,7 @@ export const startFlow = async (phone: string) => {
       waitingNodeId: undefined,
       updatedAt: new Date(),
     },
-    { upsert: true }
+    { upsert: true },
   );
 
   // Find start node
@@ -43,7 +44,7 @@ export const startFlow = async (phone: string) => {
 export const executeNode = async (
   nodeId: string,
   phone: string,
-  flow?: any
+  flow?: any,
 ) => {
   if (!flow) {
     flow = await Flow.findOne({ name: "default" });
@@ -82,26 +83,52 @@ export const executeNode = async (
         waitingNodeId: nodeId,
         updatedAt: new Date(),
       },
-      { upsert: true }
+      { upsert: true },
     );
     console.log("Waiting for button click");
+  } else if (node.type === "listMessage") {
+    // Send list message
+    await sendListMessage(
+      phone,
+      node.data.message,
+      node.data.buttonText || "View Options",
+      node.data.listItems,
+    );
+
+    // Save session - wait for list selection
+    await Session.findOneAndUpdate(
+      { phone },
+      {
+        phone,
+        currentNodeId: nodeId,
+        waitingForButton: true,
+        waitingNodeId: nodeId,
+        updatedAt: new Date(),
+      },
+      { upsert: true },
+    );
+    console.log("Waiting for list selection");
   }
 };
 
 export const handleButtonClick = async (phone: string, buttonId: string) => {
   const session = await Session.findOne({ phone });
+
   if (!session || !session.waitingForButton || !session.waitingNodeId) {
-    console.log("No active session waiting for button");
+    console.log("No active session waiting for interaction");
     return;
   }
 
   const flow = await Flow.findOne({ name: "default" });
-  if (!flow) return;
+  if (!flow) {
+    console.error("No flow found");
+    return;
+  }
 
   // Find edge with matching sourceHandle
   const nextEdge = flow.edges.find(
     (e: any) =>
-      e.source === session.waitingNodeId && e.sourceHandle === buttonId
+      e.source === session.waitingNodeId && e.sourceHandle === buttonId,
   );
 
   if (nextEdge) {
@@ -112,12 +139,12 @@ export const handleButtonClick = async (phone: string, buttonId: string) => {
         waitingForButton: false,
         waitingNodeId: undefined,
         updatedAt: new Date(),
-      }
+      },
     );
 
     // Continue flow
     await executeNode(nextEdge.target, phone, flow);
   } else {
-    console.log("No edge found for button:", buttonId);
+    console.error(`No edge found for interaction: ${buttonId}`);
   }
 };

@@ -35,6 +35,7 @@ router.post("/", async (req, res) => {
                 const text = message.text.body.toLowerCase().trim();
 
                 if (["hi", "hello", "start"].includes(text)) {
+                  console.log(`Starting flow for ${phone}`);
                   await startFlow(phone);
                 }
               }
@@ -45,7 +46,18 @@ router.post("/", async (req, res) => {
                 message.interactive.type === "button_reply"
               ) {
                 const buttonId = message.interactive.button_reply.id;
+                console.log(`Button clicked: ${buttonId} from ${phone}`);
                 await handleButtonClick(phone, buttonId);
+              }
+
+              // Handle list replies
+              if (
+                messageType === "interactive" &&
+                message.interactive.type === "list_reply"
+              ) {
+                const listItemId = message.interactive.list_reply.id;
+                console.log(`List item selected: ${listItemId} from ${phone}`);
+                await handleButtonClick(phone, listItemId);
               }
             }
           }

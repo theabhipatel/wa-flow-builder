@@ -1,4 +1,4 @@
-import { MessageSquare, MessageCircle } from "lucide-react";
+import { MessageSquare, MessageCircle, List } from "lucide-react";
 
 export default function Sidebar() {
   const onDragStart = (event: React.DragEvent, nodeType: string) => {
@@ -25,6 +25,14 @@ export default function Sidebar() {
         >
           <MessageCircle size={20} />
           <span className="text-sm font-medium">Button Message</span>
+        </div>
+        <div
+          className="p-3 bg-green-100 border-2 border-green-400 rounded-lg cursor-move hover:bg-green-200 transition flex items-center gap-2"
+          draggable
+          onDragStart={(e) => onDragStart(e, "listMessage")}
+        >
+          <List size={20} />
+          <span className="text-sm font-medium">List Message</span>
         </div>
       </div>
     </div>

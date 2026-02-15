@@ -20,12 +20,14 @@ import CustomEdge from "./components/CustomEdge";
 import StartNode from "./nodes/StartNode";
 import PlainMessageNode from "./nodes/PlainMessageNode";
 import ButtonMessageNode from "./nodes/ButtonMessageNode";
+import ListMessageNode from "./nodes/ListMessageNode";
 import { exportFlow, importFlow } from "./utils/flowExportImport";
 
 const nodeTypes = {
   start: StartNode,
   plainMessage: PlainMessageNode,
   buttonMessage: ButtonMessageNode,
+  listMessage: ListMessageNode,
 };
 
 const edgeTypes = {
@@ -118,6 +120,13 @@ function FlowBuilder() {
             buttons: [
               { id: "btn_1", title: "Option 1" },
               { id: "btn_2", title: "Option 2" },
+            ],
+          }),
+          ...(type === "listMessage" && {
+            buttonText: "View Options",
+            listItems: [
+              { id: "list_1", title: "Option 1", description: "Description 1" },
+              { id: "list_2", title: "Option 2", description: "Description 2" },
             ],
           }),
         },
