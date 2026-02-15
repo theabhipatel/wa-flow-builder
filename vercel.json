@@ -1,0 +1,28 @@
+{
+    "version": 2,
+    "builds": [
+        {
+            "src": "frontend/package.json",
+            "use": "@vercel/static-build",
+            "config": {
+                "distDir": "frontend/dist"
+            }
+        }
+    ],
+    "rewrites": [
+        {
+            "source": "/api/(.*)",
+            "destination": "/api"
+        },
+        {
+            "source": "/webhook/(.*)",
+            "destination": "/api"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/(.*)",
+            "dest": "/frontend/$1"
+        }
+    ]
+}
