@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import ReactFlow, {
-  ReactFlowProvider,
   addEdge,
   useNodesState,
   useEdgesState,
@@ -8,26 +8,29 @@ import ReactFlow, {
   Background,
   Connection,
   Node,
-  Edge,
 } from "reactflow";
 import "reactflow/dist/style.css";
 import axios from "axios";
 
-import Topbar from "./components/Topbar";
-import Sidebar from "./components/Sidebar";
-import NodeEditorPanel from "./components/NodeEditorPanel";
-import CustomEdge from "./components/CustomEdge";
-import StartNode from "./nodes/StartNode";
-import PlainMessageNode from "./nodes/PlainMessageNode";
-import ButtonMessageNode from "./nodes/ButtonMessageNode";
-import ListMessageNode from "./nodes/ListMessageNode";
-import { exportFlow, importFlow } from "./utils/flowExportImport";
+import Topbar from "../components/Topbar";
+import Sidebar from "../components/Sidebar";
+import NodeEditorPanel from "../components/NodeEditorPanel";
+import CustomEdge from "../components/CustomEdge";
+import StartNode from "../nodes/StartNode";
+import SubflowStartNode from "../nodes/SubflowStartNode";
+import PlainMessageNode from "../nodes/PlainMessageNode";
+import ButtonMessageNode from "../nodes/ButtonMessageNode";
+import ListMessageNode from "../nodes/ListMessageNode";
+import GotoSubflowNode from "../nodes/GotoSubflowNode";
+import { exportFlow, importFlow } from "../utils/flowExportImport";
 
 const nodeTypes = {
   start: StartNode,
+  subflowStart: SubflowStartNode,
   plainMessage: PlainMessageNode,
   buttonMessage: ButtonMessageNode,
   listMessage: ListMessageNode,
+  gotoSubflow: GotoSubflowNode,
 };
 
 const edgeTypes = {
@@ -36,39 +39,35 @@ const edgeTypes = {
 
 const API_URL = "http://localhost:5000";
 
-const initialNodes: Node[] = [
-  {
-    id: "start-1",
-    type: "start",
-    position: { x: 50, y: 250 },
-    data: {},
-  },
-];
-
-function FlowBuilder() {
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+export default function EditorPage() {
+  const { flowId } = useParams<{ flowId: string }>();
+  const navigate = useNavigate();
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+  const [flowName, setFlowName] = useState("");
+  const [flowType, setFlowType] = useState<"main" | "subflow">("main");
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
 
-  // Auto-load flow from database on component mount
   useEffect(() => {
-    const loadFlowFromDB = async () => {
-      try {
-        const response = await axios.get(`${API_URL}/api/flow`);
-        if (response.data.nodes && response.data.nodes.length > 0) {
-          setNodes(response.data.nodes);
-          setEdges(response.data.edges || []);
-          console.log("Flow loaded from database");
-        }
-      } catch (error) {
-        console.error("Error auto-loading flow:", error);
-      }
-    };
+    if (flowId) {
+      loadFlow(flowId);
+    }
+  }, [flowId]);
 
-    loadFlowFromDB();
-  }, []); // Empty dependency array means this runs once on mount
+  const loadFlow = async (id: string) => {
+    try {
+      const response = await axios.get(`${API_URL}/api/flow/${id}`);
+      setNodes(response.data.nodes || []);
+      setEdges(response.data.edges || []);
+      setFlowName(response.data.name);
+      setFlowType(response.data.type);
+    } catch (error) {
+      console.error("Error loading flow:", error);
+      alert("Error loading flow");
+    }
+  };
 
   const onConnect = useCallback(
     (params: Connection) =>
@@ -83,7 +82,6 @@ function FlowBuilder() {
     [setEdges],
   );
 
-  // Update edges with delete handler
   const edgesWithActions = edges.map((edge) => ({
     ...edge,
     type: edge.type || "custom",
@@ -129,6 +127,9 @@ function FlowBuilder() {
               { id: "list_2", title: "Option 2", description: "Description 2" },
             ],
           }),
+          ...(type === "gotoSubflow" && {
+            targetFlowId: "",
+          }),
         },
       };
 
@@ -164,7 +165,10 @@ function FlowBuilder() {
       const node = nodes.find((n) => n.id === nodeId);
       if (!node) return;
 
-      const nodeType = node.type === "start" ? "START node" : "this node";
+      const nodeType =
+        node.type === "start" || node.type === "subflowStart"
+          ? "START node"
+          : "this node";
       if (window.confirm(`Are you sure you want to delete ${nodeType}?`)) {
         setNodes((nds) => nds.filter((n) => n.id !== nodeId));
         setEdges((eds) =>
@@ -176,7 +180,6 @@ function FlowBuilder() {
     [nodes, setNodes, setEdges],
   );
 
-  // Update nodes with action handlers
   const nodesWithActions = nodes.map((node) => ({
     ...node,
     data: {
@@ -206,26 +209,16 @@ function FlowBuilder() {
 
   const handleSave = async () => {
     try {
-      await axios.post(`${API_URL}/api/flow/save`, { nodes, edges });
+      await axios.post(`${API_URL}/api/flow/save`, {
+        flowId,
+        name: flowName,
+        type: flowType,
+        nodes,
+        edges,
+      });
       alert("Flow saved successfully!");
     } catch (error) {
       alert("Error saving flow");
-      console.error(error);
-    }
-  };
-
-  const handleLoad = async () => {
-    try {
-      const response = await axios.get(`${API_URL}/api/flow`);
-      if (response.data.nodes && response.data.nodes.length > 0) {
-        setNodes(response.data.nodes);
-        setEdges(response.data.edges || []);
-        alert("Flow loaded successfully!");
-      } else {
-        alert("No saved flow found in database");
-      }
-    } catch (error) {
-      alert("Error loading flow");
       console.error(error);
     }
   };
@@ -261,11 +254,11 @@ function FlowBuilder() {
     const nodeMap = new Map<string, Node>();
     const visited = new Set<string>();
 
-    // Build node map
     nodes.forEach((node) => nodeMap.set(node.id, node));
 
-    // Find start node
-    const startNode = nodes.find((n) => n.type === "start");
+    const startNode = nodes.find(
+      (n) => n.type === "start" || n.type === "subflowStart",
+    );
     if (!startNode) return;
 
     const HORIZONTAL_SPACING = 300;
@@ -273,7 +266,6 @@ function FlowBuilder() {
     const START_X = 50;
     const START_Y = 250;
 
-    // BFS to layout nodes
     const queue: Array<{ nodeId: string; x: number; y: number }> = [
       { nodeId: startNode.id, x: START_X, y: START_Y },
     ];
@@ -292,7 +284,6 @@ function FlowBuilder() {
         position: { x, y },
       });
 
-      // Find connected nodes
       const outgoingEdges = edges.filter((e) => e.source === nodeId);
       const childCount = outgoingEdges.length;
 
@@ -311,7 +302,6 @@ function FlowBuilder() {
       });
     }
 
-    // Add any unconnected nodes
     nodes.forEach((node) => {
       if (!visited.has(node.id)) {
         layoutedNodes.push(node);
@@ -321,18 +311,23 @@ function FlowBuilder() {
     setNodes(layoutedNodes);
   }, [nodes, edges, setNodes]);
 
+  const handleBack = () => {
+    navigate("/");
+  };
+
   return (
     <div className="h-screen flex flex-col">
       <Topbar
+        flowName={flowName}
+        onBack={handleBack}
         onSave={handleSave}
-        onLoad={handleLoad}
         onExport={handleExport}
         onImport={handleImport}
         onTest={handleTest}
         onAutoLayout={handleAutoLayout}
       />
       <div className="flex-1 flex">
-        <Sidebar />
+        <Sidebar flowType={flowType} />
         <div ref={reactFlowWrapper} className="flex-1">
           <ReactFlow
             nodes={nodesWithActions}
@@ -368,13 +363,5 @@ function FlowBuilder() {
         )}
       </div>
     </div>
-  );
-}
-
-export default function App() {
-  return (
-    <ReactFlowProvider>
-      <FlowBuilder />
-    </ReactFlowProvider>
   );
 }

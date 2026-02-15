@@ -1,8 +1,9 @@
-import { Save, Download, Upload, Play, Network } from "lucide-react";
+import { Save, Download, Upload, Play, Network, ArrowLeft } from "lucide-react";
 
 interface TopbarProps {
+  flowName?: string;
+  onBack?: () => void;
   onSave: () => void;
-  onLoad: () => void;
   onExport: () => void;
   onImport: () => void;
   onTest: () => void;
@@ -10,8 +11,9 @@ interface TopbarProps {
 }
 
 export default function Topbar({
+  flowName,
+  onBack,
   onSave,
-  onLoad,
   onExport,
   onImport,
   onTest,
@@ -19,7 +21,20 @@ export default function Topbar({
 }: TopbarProps) {
   return (
     <div className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6">
-      <h1 className="text-xl font-bold text-gray-800">WhatsApp Flow Builder</h1>
+      <div className="flex items-center gap-4">
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="p-2 hover:bg-gray-100 rounded-lg transition"
+            title="Back to Home"
+          >
+            <ArrowLeft size={20} />
+          </button>
+        )}
+        <h1 className="text-xl font-bold text-gray-800">
+          {flowName || "WhatsApp Flow Builder"}
+        </h1>
+      </div>
       <div className="flex gap-2">
         <button
           onClick={onAutoLayout}
@@ -33,35 +48,28 @@ export default function Topbar({
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2"
         >
           <Save size={18} />
-          Save Flow
-        </button>
-        <button
-          onClick={onLoad}
-          className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition flex items-center gap-2"
-        >
-          <Download size={18} />
-          Load Flow
+          Save
         </button>
         <button
           onClick={onExport}
           className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2"
         >
           <Download size={18} />
-          Export JSON
+          Export
         </button>
         <button
           onClick={onImport}
           className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition flex items-center gap-2"
         >
           <Upload size={18} />
-          Import JSON
+          Import
         </button>
         <button
           onClick={onTest}
           className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition flex items-center gap-2"
         >
           <Play size={18} />
-          Run Test
+          Test
         </button>
       </div>
     </div>

@@ -1,6 +1,10 @@
-import { MessageSquare, MessageCircle, List } from "lucide-react";
+import { MessageSquare, MessageCircle, List, ArrowRight } from "lucide-react";
 
-export default function Sidebar() {
+interface SidebarProps {
+  flowType?: "main" | "subflow";
+}
+
+export default function Sidebar({}: SidebarProps) {
   const onDragStart = (event: React.DragEvent, nodeType: string) => {
     event.dataTransfer.setData("application/reactflow", nodeType);
     event.dataTransfer.effectAllowed = "move";
@@ -33,6 +37,14 @@ export default function Sidebar() {
         >
           <List size={20} />
           <span className="text-sm font-medium">List Message</span>
+        </div>
+        <div
+          className="p-3 bg-purple-100 border-2 border-purple-500 rounded-lg cursor-move hover:bg-purple-200 transition flex items-center gap-2"
+          draggable
+          onDragStart={(e) => onDragStart(e, "gotoSubflow")}
+        >
+          <ArrowRight size={20} />
+          <span className="text-sm font-medium">Go to Subflow</span>
         </div>
       </div>
     </div>

@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import { X, Plus, Trash2 } from "lucide-react";
+import axios from "axios";
+
+const API_URL = "http://localhost:5000";
 
 interface NodeEditorPanelProps {
   selectedNode: any;
@@ -18,6 +21,8 @@ export default function NodeEditorPanel({
   const [listItems, setListItems] = useState<
     { id: string; title: string; description?: string }[]
   >([]);
+  const [targetFlowId, setTargetFlowId] = useState("");
+  const [availableFlows, setAvailableFlows] = useState<any[]>([]);
 
   useEffect(() => {
     if (selectedNode) {
@@ -25,17 +30,42 @@ export default function NodeEditorPanel({
       setButtons(selectedNode.data.buttons || []);
       setButtonText(selectedNode.data.buttonText || "");
       setListItems(selectedNode.data.listItems || []);
+      setTargetFlowId(selectedNode.data.targetFlowId || "");
+
+      if (selectedNode.type === "gotoSubflow") {
+        loadAvailableFlows();
+      }
     }
   }, [selectedNode]);
 
-  if (!selectedNode || selectedNode.type === "start") return null;
+  const loadAvailableFlows = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/flow/all`);
+      const subflows = response.data.filter((f: any) => f.type === "subflow");
+      setAvailableFlows(subflows);
+    } catch (error) {
+      console.error("Error loading flows:", error);
+    }
+  };
+
+  if (
+    !selectedNode ||
+    selectedNode.type === "start" ||
+    selectedNode.type === "subflowStart"
+  )
+    return null;
 
   const handleSave = () => {
+    const selectedFlow = availableFlows.find((f) => f.flowId === targetFlowId);
     const updatedData = {
       ...selectedNode.data,
       message,
       ...(selectedNode.type === "buttonMessage" && { buttons }),
       ...(selectedNode.type === "listMessage" && { buttonText, listItems }),
+      ...(selectedNode.type === "gotoSubflow" && {
+        targetFlowId,
+        targetFlowName: selectedFlow?.name || "",
+      }),
     };
     onUpdate(selectedNode.id, updatedData);
   };
@@ -87,18 +117,38 @@ export default function NodeEditorPanel({
       </div>
 
       <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Message
-          </label>
-          <textarea
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            rows={4}
-            placeholder="Enter message text..."
-          />
-        </div>
+        {selectedNode.type === "gotoSubflow" ? (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Select Subflow
+            </label>
+            <select
+              value={targetFlowId}
+              onChange={(e) => setTargetFlowId(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+            >
+              <option value="">-- Select Subflow --</option>
+              {availableFlows.map((flow) => (
+                <option key={flow.flowId} value={flow.flowId}>
+                  {flow.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        ) : (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Message
+            </label>
+            <textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              rows={4}
+              placeholder="Enter message text..."
+            />
+          </div>
+        )}
 
         {selectedNode.type === "buttonMessage" && (
           <div>
