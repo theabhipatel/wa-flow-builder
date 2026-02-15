@@ -92,7 +92,18 @@ export const executeNode = async (
           btn.title && btn.title.trim().length > 0 && btn.title.length <= 20,
       ) || [];
 
-    if (validButtons.length === 0) {
+    // Check for duplicate button titles
+    const uniqueTitles = new Set();
+    const uniqueButtons = validButtons.filter((btn: any) => {
+      const title = btn.title.trim();
+      if (uniqueTitles.has(title)) {
+        return false;
+      }
+      uniqueTitles.add(title);
+      return true;
+    });
+
+    if (uniqueButtons.length === 0) {
       console.error("No valid buttons found, skipping to next node");
       const nextEdge = flow.edges.find((e: any) => e.source === nodeId);
       if (nextEdge) {
@@ -104,7 +115,7 @@ export const executeNode = async (
     }
 
     // Send button message
-    await sendButtonMessage(phone, node.data.message, validButtons);
+    await sendButtonMessage(phone, node.data.message, uniqueButtons);
 
     // Save session - wait for button click
     await Session.findOneAndUpdate(
@@ -119,7 +130,7 @@ export const executeNode = async (
       },
       { upsert: true },
     );
-    console.log("Waiting for button click");
+    console.log(`Waiting for button click on flow: ${flowId}, node: ${nodeId}`);
   } else if (node.type === "listMessage") {
     // Validate list items
     const validListItems =
@@ -166,32 +177,28 @@ export const executeNode = async (
     const targetFlowId = node.data.targetFlowId;
     if (!targetFlowId) {
       console.log("No target flow specified");
+      const nextEdge = flow.edges.find((e: any) => e.source === nodeId);
+      if (nextEdge) {
+        await executeNode(nextEdge.target, phone, flowId);
+      } else {
+        await handleFlowEnd(phone, flowId);
+      }
       return;
     }
 
     const targetFlow = await Flow.findOne({ flowId: targetFlowId });
     if (!targetFlow) {
       console.log("Target flow not found:", targetFlowId);
+      const nextEdge = flow.edges.find((e: any) => e.source === nodeId);
+      if (nextEdge) {
+        await executeNode(nextEdge.target, phone, flowId);
+      } else {
+        await handleFlowEnd(phone, flowId);
+      }
       return;
     }
 
-    // Push current position to call stack
-    const nextEdge = flow.edges.find((e: any) => e.source === nodeId);
-    if (nextEdge) {
-      await Session.findOneAndUpdate(
-        { phone },
-        {
-          $push: {
-            callStack: {
-              flowId: flowId,
-              nodeId: nextEdge.target,
-            },
-          },
-        },
-      );
-    }
-
-    // Find subflow start node
+    // Find first node after subflow start
     const subflowStart = targetFlow.nodes.find(
       (n: any) => n.type === "subflowStart",
     );
@@ -200,13 +207,33 @@ export const executeNode = async (
       return;
     }
 
-    // Find first node after subflow start
     const firstEdge = targetFlow.edges.find(
       (e: any) => e.source === subflowStart.id,
     );
     if (!firstEdge) {
       console.log("No edge from subflow start");
       return;
+    }
+
+    // Push current position to call stack BEFORE executing subflow
+    const nextEdge = flow.edges.find((e: any) => e.source === nodeId);
+    if (nextEdge) {
+      const updatedSession = await Session.findOneAndUpdate(
+        { phone },
+        {
+          $push: {
+            callStack: {
+              flowId: flowId,
+              nodeId: nextEdge.target,
+            },
+          },
+          currentFlowId: targetFlowId,
+        },
+        { new: true },
+      );
+      console.log(
+        `Calling subflow ${targetFlowId}, stack depth: ${updatedSession?.callStack.length}`,
+      );
     }
 
     // Execute subflow
@@ -216,18 +243,33 @@ export const executeNode = async (
 
 const handleFlowEnd = async (phone: string, flowId: string) => {
   const session = await Session.findOne({ phone });
-  if (!session || session.callStack.length === 0) {
-    console.log("Flow ended");
+  if (!session || !session.callStack || session.callStack.length === 0) {
+    console.log(`Flow ended: ${flowId}`);
+    // Clear session state
+    await Session.findOneAndUpdate(
+      { phone },
+      {
+        waitingForButton: false,
+        waitingNodeId: undefined,
+        currentNodeId: null,
+      },
+    );
     return;
   }
 
   // Pop from call stack
   const returnPoint = session.callStack[session.callStack.length - 1];
+  console.log(
+    `Returning from ${flowId} to ${returnPoint.flowId}, stack depth: ${session.callStack.length - 1}`,
+  );
+
   await Session.findOneAndUpdate(
     { phone },
     {
       $pop: { callStack: 1 },
       currentFlowId: returnPoint.flowId,
+      waitingForButton: false,
+      waitingNodeId: undefined,
     },
   );
 
@@ -239,9 +281,18 @@ export const handleButtonClick = async (phone: string, buttonId: string) => {
   const session = await Session.findOne({ phone });
 
   if (!session || !session.waitingForButton || !session.waitingNodeId) {
-    console.log("No active session waiting for interaction");
+    console.log(`No active session waiting for interaction. Session state:`, {
+      exists: !!session,
+      waitingForButton: session?.waitingForButton,
+      waitingNodeId: session?.waitingNodeId,
+      currentFlowId: session?.currentFlowId,
+    });
     return;
   }
+
+  console.log(
+    `Processing button click: ${buttonId} on flow: ${session.currentFlowId}, node: ${session.waitingNodeId}`,
+  );
 
   // Try to find by flowId (new format) or name (old format)
   let flow = await Flow.findOne({ flowId: session.currentFlowId });
@@ -249,7 +300,7 @@ export const handleButtonClick = async (phone: string, buttonId: string) => {
     flow = await Flow.findOne({ name: "default" });
   }
   if (!flow) {
-    console.error("No flow found");
+    console.error("No flow found for flowId:", session.currentFlowId);
     return;
   }
 
@@ -260,19 +311,23 @@ export const handleButtonClick = async (phone: string, buttonId: string) => {
   );
 
   if (nextEdge) {
-    // Update session
+    // Update session BEFORE continuing execution
     await Session.findOneAndUpdate(
       { phone },
       {
         waitingForButton: false,
         waitingNodeId: undefined,
+        currentNodeId: nextEdge.target,
         updatedAt: new Date(),
       },
     );
 
+    console.log(`Continuing to node: ${nextEdge.target}`);
     // Continue flow
     await executeNode(nextEdge.target, phone, session.currentFlowId);
   } else {
-    console.error(`No edge found for interaction: ${buttonId}`);
+    console.error(
+      `No edge found for button: ${buttonId} from node: ${session.waitingNodeId}`,
+    );
   }
 };
