@@ -18,11 +18,5 @@
             "source": "/webhook/(.*)",
             "destination": "/api"
         }
-    ],
-    "routes": [
-        {
-            "src": "/(.*)",
-            "dest": "/frontend/$1"
-        }
     ]
 }
