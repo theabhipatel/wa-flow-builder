@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { X, Plus, Trash2 } from "lucide-react";
 import axios from "axios";
-
-const API_URL = "http://localhost:5000";
+import { API_URL } from "../config/api";
 
 interface NodeEditorPanelProps {
   selectedNode: any;
